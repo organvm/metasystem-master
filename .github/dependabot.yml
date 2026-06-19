@@ -1,0 +1,53 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/docs/reference/poc-v0.1.0-parent/poc-v0.1.0/client"
+      - "/docs/reference/poc-v0.1.0-parent/poc-v0.1.0/server"
+      - "/examples/choreographic-interface"
+      - "/examples/generative-music"
+      - "/examples/generative-visual"
+      - "/examples/theatre-dialogue"
+      - "/packages/audio-synthesis-bridge"
+      - "/packages/core-engine"
+      - "/packages/performance-sdk"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    groups:
+      npm-deps:
+        patterns: ["*"]
+  - package-ecosystem: "pip"
+    directories:
+      - "/docs/source-materials/theory"
+      - "/packages/orchestrate"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    groups:
+      pip-deps:
+        patterns: ["*"]
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    groups:
+      github-actions-deps:
+        patterns: ["*"]
+  - package-ecosystem: "docker"
+    directories:
+      - "/docs/reference/omnidramanon-cold-storage/deploy-scaffold/omni-dromenon-deploy/docker"
+      - "/docs/reference/omnidramanon-cold-storage/deploy-scaffold/omni-dromenon-deploy/files"
+      - "/docs/reference/poc-v0.1.0-parent/poc-v0.1.0/client"
+      - "/docs/reference/poc-v0.1.0-parent/poc-v0.1.0/server"
+      - "/infra/docker"
+      - "/packages/core-engine/docker"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    groups:
+      docker-deps:
+        patterns: ["*"]
