@@ -703,7 +703,7 @@ Omni-Dromenon is the **ORGAN-II flagship** within the organvm eight-organ creati
 
 ### System Context
 
-- **[meta-organvm](https://github.com/meta-organvm)** — The umbrella organization coordinating all eight organs. Omni-Dromenon is the ORGAN-II flagship, one of ~79 repositories across 8 GitHub organizations in the organvm creative-institutional system.
+- **[organvm](https://github.com/organvm)** — The umbrella organization coordinating all eight organs. Omni-Dromenon is the ORGAN-II flagship, one of 171 repositories across 8 GitHub organizations in the organvm creative-institutional system.
 
 ---
 
@@ -809,7 +809,7 @@ The `docs/` directory contains 200+ files across academic templates, deployment 
 
 **Organization:** [organvm-ii-poiesis](https://github.com/organvm-ii-poiesis) (ORGAN-II: Poiesis)
 
-**System:** [meta-organvm](https://github.com/meta-organvm) — the eight-organ creative-institutional system coordinating ~79 repositories across theory, art, commerce, orchestration, public process, community, and marketing.
+**System:** [organvm](https://github.com/organvm) — the eight-organ creative-institutional system coordinating 171 repositories across theory, art, commerce, orchestration, public process, community, and marketing.
 
 ---
 
