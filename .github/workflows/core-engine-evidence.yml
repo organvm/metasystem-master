@@ -30,6 +30,9 @@ jobs:
           node-version: "20"
           cache: pnpm
 
+      - name: Enforce active claim boundaries
+        run: node tools/check-core-claim-boundaries.mjs
+
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
