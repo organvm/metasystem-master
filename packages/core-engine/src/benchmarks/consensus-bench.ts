@@ -115,6 +115,10 @@ function runCase(inputCount: number): BenchmarkRow {
     samples.push(duration);
   }
 
+  if (expectedOutput === null) {
+    throw new Error(`Benchmark did not produce an output for ${inputCount} inputs`);
+  }
+
   samples.sort((left, right) => left - right);
   const total = samples.reduce((sum, sample) => sum + sample, 0);
   const mean = total / samples.length;
