@@ -8,8 +8,10 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "vitest",
-    "test:bench": "node src/benchmarks/consensus-bench.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:bench": "tsx src/benchmarks/consensus-bench.ts",
     "docker:build": "docker build -t omni-dromenon-engine:latest .",
     "docker:run": "docker-compose up"
   },
