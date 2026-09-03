@@ -132,14 +132,14 @@ describe('aggregation', () => {
     expect(standardDeviation(dispersed)).toBeGreaterThan(standardDeviation(uniform));
   });
 
-  it('removes a sufficiently isolated outlier', () => {
+  it('removes an observation beyond the declared 2.5-sigma threshold', () => {
     const weighted = weightInputs(
-      inputs([0.5, 0.5, 0.5, 0.5, 0.95]),
+      inputs([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.95]),
       STAGE,
       DEFAULT_WEIGHTING_CONFIG,
       NOW,
     );
-    expect(removeOutliers(weighted).length).toBeLessThan(weighted.length);
+    expect(removeOutliers(weighted)).toHaveLength(weighted.length - 1);
   });
 
   it('keeps a compact cohort intact', () => {
