@@ -3,6 +3,7 @@ import {
   analyzeCluster,
   applyOverride,
   calculateSpatialWeight,
+  calculateTemporalWeight,
   computeConsensus,
   removeOutliers,
   smoothValue,
@@ -36,6 +37,10 @@ describe('deterministic consensus invariants', () => {
     const near = calculateSpatialWeight(STAGE, STAGE, DEFAULT_WEIGHTING_CONFIG);
     const far = calculateSpatialWeight({ x: 50, y: 100 }, STAGE, DEFAULT_WEIGHTING_CONFIG);
     expect(near).toBeGreaterThan(far);
+  });
+
+  it('bounds a future-dated input at the maximum temporal component', () => {
+    expect(calculateTemporalWeight(NOW + 5_000, NOW, DEFAULT_WEIGHTING_CONFIG)).toBe(1);
   });
 
   it('preserves the mean for symmetric equally located values', () => {
