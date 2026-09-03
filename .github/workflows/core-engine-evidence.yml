@@ -21,6 +21,12 @@ jobs:
       - name: Check out source
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
+      - name: Enforce active claim boundaries
+        run: node tools/check-core-claim-boundaries.mjs
+
+      - name: Enforce evidence-lane structure
+        run: node tools/check-core-evidence-structure.mjs
+
       - name: Install pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v4
 
@@ -29,9 +35,6 @@ jobs:
         with:
           node-version: "20"
           cache: pnpm
-
-      - name: Enforce active claim boundaries
-        run: node tools/check-core-claim-boundaries.mjs
 
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
@@ -43,6 +46,8 @@ jobs:
         run: pnpm --filter @omni-dromenon/core-engine test
 
       - name: Produce consensus benchmark baseline
+        env:
+          SOURCE_REVISION: ${{ github.sha }}
         run: >-
           pnpm --filter @omni-dromenon/core-engine test:bench --
           --output "$GITHUB_WORKSPACE/benchmark-results/consensus-baseline.json"
