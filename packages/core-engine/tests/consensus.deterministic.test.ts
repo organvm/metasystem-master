@@ -39,7 +39,10 @@ describe('deterministic consensus invariants', () => {
   });
 
   it('preserves the mean for symmetric equally located values', () => {
-    const inputs = [input(0, 0.2), input(0, 0.8)];
+    const inputs = [
+      input(0, 0.2),
+      { ...input(1, 0.8), timestamp: NOW },
+    ];
     const weighted = weightInputs(inputs, STAGE, DEFAULT_WEIGHTING_CONFIG, NOW);
     expect(weightedMean(weighted)).toBeCloseTo(0.5, 8);
   });
