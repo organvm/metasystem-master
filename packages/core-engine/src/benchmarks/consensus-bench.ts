@@ -2,9 +2,13 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { computeConsensus } from '../consensus/weighted-voting.js';
-import type { AudienceInput } from '../types/index.js';
+import {
+  ConsensusMode,
+  DEFAULT_WEIGHTING_CONFIG,
+  type AudienceInput,
+} from '../types/index.js';
 
-const SCHEMA_VERSION = '1.0.0';
+const SCHEMA_VERSION = '1.1.0';
 const SEED = 0x4f4d4e49;
 const SIZES = [10, 100, 250, 500, 1000] as const;
 const WARMUP_ITERATIONS = 10;
@@ -65,28 +69,49 @@ function round(value: number, places = 6): number {
 function outputPathFromArgs(): string {
   const outputFlag = process.argv.indexOf('--output');
   const requested = outputFlag >= 0 ? process.argv[outputFlag + 1] : undefined;
+  if (outputFlag >= 0 && !requested) {
+    throw new Error('The --output flag requires a path');
+  }
   return resolve(requested ?? 'benchmark-results/consensus-baseline.json');
+}
+
+function computeFixedConsensus(inputs: AudienceInput[]) {
+  return computeConsensus(
+    'intensity',
+    inputs,
+    STAGE_POSITION,
+    DEFAULT_WEIGHTING_CONFIG,
+    undefined,
+    ConsensusMode.WEIGHTED_AVERAGE,
+    FIXED_NOW,
+  );
 }
 
 function runCase(inputCount: number): BenchmarkRow {
   const inputs = createInputs(inputCount, SEED ^ inputCount);
-  let outputValue = 0;
+  let expectedOutput: number | null = null;
 
   for (let iteration = 0; iteration < WARMUP_ITERATIONS; iteration += 1) {
-    outputValue = computeConsensus('intensity', inputs, STAGE_POSITION).value;
+    const result = computeFixedConsensus(inputs);
+    expectedOutput ??= result.value;
+    if (result.value !== expectedOutput) {
+      throw new Error(`Non-deterministic warm-up output for ${inputCount} inputs`);
+    }
   }
 
   const samples: number[] = [];
   for (let iteration = 0; iteration < MEASURED_ITERATIONS; iteration += 1) {
     const start = performance.now();
-    const result = computeConsensus('intensity', inputs, STAGE_POSITION);
+    const result = computeFixedConsensus(inputs);
     const duration = performance.now() - start;
 
     if (result.inputCount !== inputCount || !Number.isFinite(result.value)) {
       throw new Error(`Invalid benchmark result for ${inputCount} inputs`);
     }
+    if (expectedOutput === null || result.value !== expectedOutput) {
+      throw new Error(`Non-deterministic measured output for ${inputCount} inputs`);
+    }
 
-    outputValue = result.value;
     samples.push(duration);
   }
 
@@ -103,7 +128,7 @@ function runCase(inputCount: number): BenchmarkRow {
     p95Ms: round(percentile(samples, 0.95)),
     maxMs: round(samples[samples.length - 1]),
     operationsPerSecond: round(1_000 / mean, 3),
-    outputValue: round(outputValue),
+    outputValue: round(expectedOutput),
   };
 }
 
@@ -122,11 +147,13 @@ async function main(): Promise<void> {
     },
     method: {
       seed: SEED,
+      evaluationTimestampEpochMs: FIXED_NOW,
       fixedInputTimestampEpochMs: FIXED_NOW,
       warmupIterations: WARMUP_ITERATIONS,
       measuredIterations: MEASURED_ITERATIONS,
       timer: 'node:perf_hooks.performance.now',
       statisticDefinition: 'nearest-rank percentile over per-call wall-clock samples',
+      determinismCheck: 'all warm-up and measured calls must return the identical consensus value',
       scope: 'in-process computeConsensus only; excludes network, serialization, Socket.IO, Redis, OSC, rendering, and audience-device latency',
       threshold: null,
     },
