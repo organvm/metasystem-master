@@ -8,13 +8,14 @@ import {
   type AudienceInput,
 } from '../types/index.js';
 
-const SCHEMA_VERSION = '1.1.0';
+const SCHEMA_VERSION = '1.2.0';
 const SEED = 0x4f4d4e49;
 const SIZES = [10, 100, 250, 500, 1000] as const;
 const WARMUP_ITERATIONS = 10;
 const MEASURED_ITERATIONS = 50;
 const STAGE_POSITION = { x: 50, y: 0 };
 const FIXED_NOW = 1_800_000_000_000;
+const INPUT_AGE_WINDOW_MS = 5_000;
 
 interface BenchmarkRow {
   inputCount: number;
@@ -45,7 +46,7 @@ function createInputs(count: number, seed: number): AudienceInput[] {
     id: `bench-${count}-${index}`,
     clientId: `client-${index}`,
     sessionId: 'reproducibility-baseline',
-    timestamp: FIXED_NOW - Math.floor(random() * 5_000),
+    timestamp: FIXED_NOW - Math.floor(random() * INPUT_AGE_WINDOW_MS),
     parameter: 'intensity',
     value: random(),
     location: {
@@ -151,8 +152,16 @@ async function main(): Promise<void> {
     },
     method: {
       seed: SEED,
+      cohortSeedDerivation: 'seed XOR inputCount',
       evaluationTimestampEpochMs: FIXED_NOW,
-      fixedInputTimestampEpochMs: FIXED_NOW,
+      inputTimestampPolicy: {
+        derivation: 'evaluationTimestampEpochMs - floor(prng * inputAgeWindowMs)',
+        inputAgeWindowMs: INPUT_AGE_WINDOW_MS,
+        ageRangeMs: {
+          minimumInclusive: 0,
+          maximumExclusive: INPUT_AGE_WINDOW_MS,
+        },
+      },
       warmupIterations: WARMUP_ITERATIONS,
       measuredIterations: MEASURED_ITERATIONS,
       timer: 'node:perf_hooks.performance.now',
