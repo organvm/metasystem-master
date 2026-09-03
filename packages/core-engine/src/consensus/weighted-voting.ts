@@ -41,7 +41,9 @@ export function calculateTemporalWeight(
   currentTime: number,
   config: WeightingConfig,
 ): number {
-  const ageMs = currentTime - inputTimestamp;
+  // Treat future-dated input as age zero rather than allowing clock skew to
+  // produce a temporal component greater than one.
+  const ageMs = Math.max(0, currentTime - inputTimestamp);
 
   if (ageMs > config.temporalWindowMs) {
     return 0.01;
