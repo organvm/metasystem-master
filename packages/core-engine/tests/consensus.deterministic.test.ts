@@ -61,10 +61,11 @@ describe('deterministic consensus invariants', () => {
     expect(analysis.bimodality).toBe(true);
   });
 
-  it('removes a sufficiently isolated outlier', () => {
-    const inputs = [0.5, 0.5, 0.5, 0.5, 0.95].map((value, index) => input(index, value));
+  it('removes an observation beyond the declared 2.5-sigma threshold', () => {
+    const inputs = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.95]
+      .map((value, index) => input(index, value));
     const weighted = weightInputs(inputs, STAGE, DEFAULT_WEIGHTING_CONFIG, NOW);
-    expect(removeOutliers(weighted).length).toBeLessThan(weighted.length);
+    expect(removeOutliers(weighted)).toHaveLength(weighted.length - 1);
   });
 
   it('applies blend override without erasing audience consensus', () => {
