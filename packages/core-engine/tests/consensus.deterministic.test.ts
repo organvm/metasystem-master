@@ -39,21 +39,23 @@ describe('deterministic consensus invariants', () => {
   });
 
   it('preserves the mean for symmetric equally located values', () => {
-    const inputs = [input(0, 0.2), input(1, 0.8)];
-    const weighted = weightInputs(inputs, STAGE);
-    expect(weightedMean(weighted)).toBeCloseTo(0.5, 6);
+    const inputs = [input(0, 0.2), input(0, 0.8)];
+    const weighted = weightInputs(inputs, STAGE, DEFAULT_WEIGHTING_CONFIG, NOW);
+    expect(weightedMean(weighted)).toBeCloseTo(0.5, 8);
   });
 
   it('detects separated input clusters as bimodal', () => {
     const inputs = [0.1, 0.1, 0.1, 0.9, 0.9, 0.9].map((value, index) => input(index, value));
-    const analysis = analyzeCluster(weightInputs(inputs, STAGE));
+    const analysis = analyzeCluster(
+      weightInputs(inputs, STAGE, DEFAULT_WEIGHTING_CONFIG, NOW),
+    );
     expect(analysis.clusters).toHaveLength(2);
     expect(analysis.bimodality).toBe(true);
   });
 
   it('removes a sufficiently isolated outlier', () => {
     const inputs = [0.5, 0.5, 0.5, 0.5, 0.95].map((value, index) => input(index, value));
-    const weighted = weightInputs(inputs, STAGE);
+    const weighted = weightInputs(inputs, STAGE, DEFAULT_WEIGHTING_CONFIG, NOW);
     expect(removeOutliers(weighted).length).toBeLessThan(weighted.length);
   });
 
@@ -68,22 +70,29 @@ describe('deterministic consensus invariants', () => {
     expect(applyOverride(0.2, override)).toBeCloseTo(0.4, 8);
   });
 
-  it('computes a finite result for a deterministic 1,000-input cohort without asserting latency', () => {
+  it('computes a stable finite result for a deterministic 1,000-input cohort', () => {
     const inputs = Array.from({ length: 1_000 }, (_, index) =>
       input(index, (index % 101) / 100, index % 100, (index * 7) % 100),
     );
-    const result = computeConsensus(
+    const compute = () => computeConsensus(
       'intensity',
       inputs,
       STAGE,
       DEFAULT_WEIGHTING_CONFIG,
       undefined,
       ConsensusMode.WEIGHTED_AVERAGE,
+      NOW,
     );
-    expect(result.inputCount).toBe(1_000);
-    expect(Number.isFinite(result.value)).toBe(true);
-    expect(result.value).toBeGreaterThanOrEqual(0);
-    expect(result.value).toBeLessThanOrEqual(1);
+
+    const first = compute();
+    const second = compute();
+
+    expect(first).toEqual(second);
+    expect(first.timestamp).toBe(NOW);
+    expect(first.inputCount).toBe(1_000);
+    expect(Number.isFinite(first.value)).toBe(true);
+    expect(first.value).toBeGreaterThanOrEqual(0);
+    expect(first.value).toBeLessThanOrEqual(1);
   });
 
   it('smooths toward the new value by the configured fraction', () => {
