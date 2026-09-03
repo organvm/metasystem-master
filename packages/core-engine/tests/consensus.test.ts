@@ -181,6 +181,19 @@ describe('cluster analysis', () => {
     expect(analysis.bimodality).toBe(true);
   });
 
+  it('uses the two densest clusters rather than the first two value clusters', () => {
+    const analysis = analyzeCluster(
+      weightInputs(
+        inputs([0.01, 0.35, 0.35, 0.35, 0.35, 0.9, 0.9, 0.9, 0.9]),
+        STAGE,
+        DEFAULT_WEIGHTING_CONFIG,
+        NOW,
+      ),
+    );
+    expect(analysis.clusters).toHaveLength(3);
+    expect(analysis.bimodality).toBe(true);
+  });
+
   it('returns an empty analysis for an empty cohort', () => {
     expect(analyzeCluster([])).toEqual({
       clusters: [],
@@ -304,16 +317,16 @@ describe('performer override', () => {
     expect(applyOverride(0.7, null)).toBe(0.7);
   });
 
-  it('distinguishes unbounded, active, and expired overrides', () => {
+  it('distinguishes unbounded, active, and expired overrides at a fixed clock', () => {
     const base: PerformerOverride = {
       performerId: 'performer-1',
       parameter: 'intensity',
       value: 0.8,
       mode: 'absolute',
     };
-    expect(isOverrideActive(base)).toBe(true);
-    expect(isOverrideActive({ ...base, expiresAt: Date.now() + 60_000 })).toBe(true);
-    expect(isOverrideActive({ ...base, expiresAt: Date.now() - 60_000 })).toBe(false);
-    expect(isOverrideActive(null)).toBe(false);
+    expect(isOverrideActive(base, NOW)).toBe(true);
+    expect(isOverrideActive({ ...base, expiresAt: NOW + 1 }, NOW)).toBe(true);
+    expect(isOverrideActive({ ...base, expiresAt: NOW }, NOW)).toBe(false);
+    expect(isOverrideActive(null, NOW)).toBe(false);
   });
 });
