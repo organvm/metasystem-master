@@ -220,9 +220,15 @@ export function analyzeCluster(
     if (probability > 0) entropy -= probability * Math.log2(probability);
   }
 
-  const bimodality = clusters.length >= 2
-    && clusters[0].density > totalWeight * 0.3
-    && (clusters[1]?.density ?? 0) > totalWeight * 0.3;
+  // Cluster order is value order, not density order. Determine modality from
+  // the two densest clusters so a sparse edge cluster cannot hide two large
+  // separated groups later in the value range.
+  const densestClusters = [...clusters].sort(
+    (left, right) => right.density - left.density,
+  );
+  const bimodality = densestClusters.length >= 2
+    && densestClusters[0].density > totalWeight * 0.3
+    && (densestClusters[1]?.density ?? 0) > totalWeight * 0.3;
 
   return { clusters, dominantCluster, entropy, bimodality };
 }
@@ -332,9 +338,12 @@ export function applyOverride(
   }
 }
 
-/** Report whether an override is present and unexpired. */
-export function isOverrideActive(override: PerformerOverride | null): boolean {
+/** Report whether an override is present and unexpired at an explicit clock. */
+export function isOverrideActive(
+  override: PerformerOverride | null,
+  evaluationTime: number = Date.now(),
+): boolean {
   if (!override) return false;
   if (!override.expiresAt) return true;
-  return Date.now() < override.expiresAt;
+  return evaluationTime < override.expiresAt;
 }
